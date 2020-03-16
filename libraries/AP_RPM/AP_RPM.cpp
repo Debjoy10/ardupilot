@@ -111,7 +111,7 @@ void AP_RPM::init(void)
     }
     for (uint8_t i=0; i<RPM_MAX_INSTANCES; i++) {
         uint8_t type = _type[i];
-
+#if CONFIG_HAL_BOARD != HAL_BOARD_SITL
         if (type == RPM_TYPE_PWM) {
             // PWM option same as PIN option, for upgrade
             type = RPM_TYPE_PIN;
@@ -119,6 +119,7 @@ void AP_RPM::init(void)
         if (type == RPM_TYPE_PIN) {
             drivers[i] = new AP_RPM_Pin(*this, i, state[i]);
         }
+#endif
 #if EFI_ENABLED
         if (type == RPM_TYPE_EFI) {
             drivers[i] = new AP_RPM_EFI(*this, i, state[i]);
@@ -184,6 +185,18 @@ bool AP_RPM::enabled(uint8_t instance) const
     if (_type[instance] == RPM_TYPE_NONE) {
         return false;
     }
+    return true;
+}
+
+/*
+  get RPM value, return true on success
+ */
+bool AP_RPM::get_rpm(uint8_t instance, float &rpm_value) const
+{
+    if (!healthy(instance)) {
+        return false;
+    }
+    rpm_value = state[instance].rate_rpm;
     return true;
 }
 
